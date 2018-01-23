@@ -83,7 +83,7 @@ container:
     - docker push "$CI_REGISTRY_IMAGE"/namerd:"$IMAGE_TAG"
     - docker push "$CI_REGISTRY_IMAGE"/namerd-dcos:"$IMAGE_TAG"
     - touch release.env
-    - echo export IMAGE_ARGS="--set image=$CI_REGISTRY_IMAGE"/linkerd:"$IMAGE_TAG" | tee release.env
+    - echo export IMAGE_ARGS=\"--set image=$CI_REGISTRY_IMAGE/linkerd:$IMAGE_TAG\" | tee release.env
     - cat release.env
 
   artifacts:
