@@ -57,7 +57,8 @@ compile:
     - echo "Publish"
     # - DOCKER_TARGET="dockerBuildAndPush"
     - export NO_PUSH="1"
-    - ci/docker-publish.sh "$CI_COMMIT_SHA"
+    - ci/docker-publish.sh "$CI_COMMIT_SHA.$CI_PIPELINE_ID"
+    - docker images | grep "$CI_COMMIT_SHA.$CI_PIPELINE_ID"
     
 
   artifacts:
