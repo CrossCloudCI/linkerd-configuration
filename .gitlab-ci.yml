@@ -20,7 +20,6 @@ before_script:
       export CROSS_CLOUD_YML="$CROSS_CLOUD_YML"
     fi
   - source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; ./bin/update_dashboard ; popd
-  - echo TEST 243
   
 compile:
   image: crosscloudci/debian-openjdk
@@ -55,7 +54,6 @@ compile:
     - sh -x ci/test.sh 
     - set -x ci/coverage-publish.sh
     - echo "Publish"
-    # - DOCKER_TARGET="dockerBuildAndPush"
     - export NO_PUSH="1"
     - ci/docker-publish.sh "$CI_COMMIT_SHA.$CI_PIPELINE_ID"
     
@@ -71,7 +69,7 @@ container:
   image: crosscloudci/debian-docker
   script:
     - IMAGE_TAG=${CI_COMMIT_SHA_SHORT}
-    - docker tag buoyantio/linkerd:"$CI_COIMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/linkerd:"$IMAGE_TAG"
+    - docker tag buoyantio/linkerd:"$CI_COMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/linkerd:"$IMAGE_TAG"
     - docker tag buoyantio/namerd:"$CI_COMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/namerd:"$IMAGE_TAG"
     - docker tag buoyantio/namerd:dcos-"$CI_COMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/namerd:dcos-"$IMAGE_TAG"
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
