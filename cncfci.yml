@@ -1,0 +1,5 @@
+project:
+  logo_url: "https://raw.githubusercontent.com/cncf/artwork/master/linkerd/icon/color/linkerd-icon-color.svg?sanitize=true"
+  display_name: Linkerd
+  sub_title: Service Mesh
+  project_url: "https://github.com/linkerd/linkerd"

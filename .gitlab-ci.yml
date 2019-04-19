@@ -20,7 +20,6 @@ before_script:
       export CROSS_CLOUD_YML="$CROSS_CLOUD_YML"
     fi
   - source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; ./bin/update_dashboard ; popd
-  - echo TEST 243
   
 compile:
   image: crosscloudci/debian-openjdk
@@ -52,17 +51,12 @@ compile:
     - echo "Run npm tests"
     - pushd $(pwd)/admin/src/main/resources/io/buoyant/admin/ ;  npm run eslint ; npm test ; popd 
     - echo "Run unit and e2e tests"
-    # - sh -x ci/test.sh 
-    # - set -x ci/coverage-publish.sh || true
+    - sh -x ci/test.sh || true
+    - set -x ci/coverage-publish.sh || true
     - echo "Publish"
-    # - DOCKER_TARGET="dockerBuildAndPush"
-    - DOCKER_TARGET="docker"
-    # - ./sbt "set Base.dockerTag in (linkerd, Bundle) := \"${IMAGE_TAG}\"" "linkerd/bundle:${DOCKER_TARGET}" \
-            # "set Base.dockerTag in (namerd, Bundle) := \"${IMAGE_TAG}\"" "namerd/bundle:${DOCKER_TARGET}" \
-            # "set Base.dockerTag in (namerd, Dcos) := \"dcos-${IMAGE_TAG}\"" "namerd/dcos:${DOCKER_TARGET}"
-    - ./sbt 'set imageNames in docker in (linkerd, Bundle) += ImageName("registry.cncf.ci/linkerd/linkerd/linkerd:1.3.1")' \ "linkerd/docker"
-    - ./sbt 'set imageNames in docker in (namerd, Bundle) += ImageName("registry.cncf.ci/linkerd/linkerd/namerd:1.3.1")' \ "namerd/docker"
-    - ./sbt 'set imageNames in docker in (namerd, Dcos) += ImageName("registry.cncf.ci/linkerd/linkerd/namerd-dcos:1.3.1")' \ "namerd/dcos:docker"
+    - export NO_PUSH="1"
+    - ci/docker-publish.sh "$CI_COMMIT_SHA.$CI_PIPELINE_ID"
+    
 
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
@@ -75,13 +69,13 @@ container:
   image: crosscloudci/debian-docker
   script:
     - IMAGE_TAG=${CI_COMMIT_SHA_SHORT}
-    - docker tag registry.cncf.ci/linkerd/linkerd/linkerd:1.3.1 "$CI_REGISTRY_IMAGE"/linkerd:"$IMAGE_TAG"
-    - docker tag registry.cncf.ci/linkerd/linkerd/namerd:1.3.1 "$CI_REGISTRY_IMAGE"/namerd:"$IMAGE_TAG"
-    - docker tag registry.cncf.ci/linkerd/linkerd/namerd-dcos:1.3.1 "$CI_REGISTRY_IMAGE"/namerd-dcos:"$IMAGE_TAG"
+    - docker tag buoyantio/linkerd:"$CI_COMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/linkerd:"$IMAGE_TAG"
+    - docker tag buoyantio/namerd:"$CI_COMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/namerd:"$IMAGE_TAG"
+    - docker tag buoyantio/namerd:dcos-"$CI_COMMIT_SHA.$CI_PIPELINE_ID" "$CI_REGISTRY_IMAGE"/namerd:dcos-"$IMAGE_TAG"
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE"/linkerd:"$IMAGE_TAG"
     - docker push "$CI_REGISTRY_IMAGE"/namerd:"$IMAGE_TAG"
-    - docker push "$CI_REGISTRY_IMAGE"/namerd-dcos:"$IMAGE_TAG"
+    - docker push "$CI_REGISTRY_IMAGE"/namerd:dcos-"$IMAGE_TAG"
     - touch release.env
     - echo export IMAGE_ARGS=\"--set image=$CI_REGISTRY_IMAGE/linkerd:$IMAGE_TAG\" | tee release.env
     - cat release.env
